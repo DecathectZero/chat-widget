@@ -3,21 +3,16 @@
 import React from 'react';
 import {ThemeProvider, jsx} from 'theme-ui';
 import qs from 'query-string';
-import {
-  CustomerMetadata,
-  Message,
-  WidgetSettings,
-  fetchWidgetSettings,
-  updateWidgetSettingsMetadata,
-} from '../api';
-import {WidgetConfig, isValidUuid, noop} from '../utils';
+import {CustomerMetadata, Message, WidgetSettings} from '../api';
+import {WidgetConfig, noop} from '../utils';
 import getThemeConfig from '../theme';
 import store from '../storage';
 import {isDev} from '../config';
 import Logger from '../logger';
 import {getUserInfo} from '../track/info';
 
-const DEFAULT_IFRAME_URL = 'https://chat-widget.papercups.io';
+const DEFAULT_IFRAME_URL =
+  'http://com.voiceflow.chat-window.s3-website-us-east-1.amazonaws.com';
 
 // TODO: set this up somewhere else
 const setupPostMessageHandlers = (w: any, handlers: (msg?: any) => void) => {
@@ -58,18 +53,14 @@ export type SharedProps = {
   title?: string;
   subtitle?: string;
   primaryColor?: string;
-  accountId: string;
-  baseUrl?: string;
+  avatar?: string;
+  companyName?: string;
+  versionID: string;
+  runtimeEndpoint?: string;
   greeting?: string;
   customer?: CustomerMetadata | null;
   newMessagePlaceholder?: string;
-  emailInputPlaceholder?: string;
-  newMessagesNotificationText?: string;
-  agentAvailableText?: string;
-  agentUnavailableText?: string;
-  showAgentAvailability?: boolean;
   iframeUrlOverride?: string;
-  requireEmailUpfront?: boolean;
   customIconUrl?: string;
   onChatLoaded?: () => void;
   onChatOpened?: () => void;
@@ -114,18 +105,6 @@ class ChatWidgetContainer extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
 
-    if (!props.accountId) {
-      throw new Error('An `accountId` is required to run the Papercups chat!');
-    } else if (!isValidUuid(props.accountId)) {
-      console.error(
-        `The \`accountId\` must be a valid UUID. (Received invalid \`accountId\`: ${props.accountId})`
-      );
-      console.error(
-        `If you're missing a Papercups \`accountId\`, you can get one by signing up for a free account at https://app.papercups.io/register`
-      );
-      throw new Error(`Invalid \`accountId\`: ${props.accountId}`);
-    }
-
     this.state = {
       isOpen: false,
       isLoaded: false,
@@ -139,21 +118,19 @@ class ChatWidgetContainer extends React.Component<Props, State> {
   async componentDidMount() {
     // TODO: use `subscription_plan` from settings.account to determine
     // whether to display the Papercups branding or not in the chat window
-    const settings = await this.fetchWidgetSettings();
     const {
-      accountId,
+      versionID,
       primaryColor,
-      baseUrl,
+      runtimeEndpoint,
       newMessagePlaceholder,
-      emailInputPlaceholder,
-      newMessagesNotificationText,
-      agentAvailableText,
-      agentUnavailableText,
-      showAgentAvailability,
-      requireEmailUpfront,
       canToggle,
+      avatar,
+      companyName,
       customer = {},
     } = this.props;
+
+    const settings: WidgetSettings = {};
+
     // TODO: make it possible to opt into debug mode via props
     const debugModeEnabled = isDev(window);
 
@@ -167,25 +144,16 @@ class ChatWidgetContainer extends React.Component<Props, State> {
 
     const metadata = {...getUserInfo(window), ...customer};
     const config: WidgetConfig = {
-      accountId,
-      baseUrl,
-      agentAvailableText,
-      agentUnavailableText,
+      versionID,
+      avatar,
+      runtimeEndpoint,
+      companyName,
       title: await this.getDefaultTitle(settings),
       subtitle: await this.getDefaultSubtitle(settings),
       primaryColor: primaryColor || settings.color,
-      greeting: await this.getDefaultGreeting(settings),
       newMessagePlaceholder:
         newMessagePlaceholder || settings.new_message_placeholder,
-      emailInputPlaceholder:
-        emailInputPlaceholder || settings.email_input_placeholder,
-      newMessagesNotificationText:
-        newMessagesNotificationText || settings.new_messages_notification_text,
-      companyName: settings?.account?.company_name,
-      requireEmailUpfront: requireEmailUpfront ? 1 : 0,
-      showAgentAvailability: showAgentAvailability ? 1 : 0,
       closeable: canToggle ? 1 : 0,
-      customerId: this.storage.getCustomerId(),
       subscriptionPlan: settings?.account?.subscription_plan,
       metadata: JSON.stringify(metadata),
       version: '1.1.6',
@@ -194,9 +162,6 @@ class ChatWidgetContainer extends React.Component<Props, State> {
     const query = qs.stringify(config, {skipEmptyString: true, skipNull: true});
 
     this.setState({config, query});
-
-    // Set some metadata on the widget to better understand usage
-    await this.updateWidgetSettingsMetadata();
   }
 
   componentWillUnmount() {
@@ -205,62 +170,6 @@ class ChatWidgetContainer extends React.Component<Props, State> {
         unsubscribe();
       }
     });
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    const {
-      accountId,
-      title,
-      subtitle,
-      primaryColor,
-      baseUrl,
-      greeting,
-      newMessagePlaceholder,
-      emailInputPlaceholder,
-      newMessagesNotificationText,
-    } = this.props;
-    const current = [
-      accountId,
-      title,
-      subtitle,
-      primaryColor,
-      baseUrl,
-      greeting,
-      newMessagePlaceholder,
-      emailInputPlaceholder,
-      newMessagesNotificationText,
-    ];
-    const prev = [
-      prevProps.accountId,
-      prevProps.title,
-      prevProps.subtitle,
-      prevProps.primaryColor,
-      prevProps.baseUrl,
-      prevProps.greeting,
-      prevProps.newMessagePlaceholder,
-      prevProps.emailInputPlaceholder,
-      prevProps.newMessagesNotificationText,
-    ];
-    const shouldUpdate = current.some((value, idx) => {
-      return value !== prev[idx];
-    });
-
-    // Send updates to iframe if props change. (This is mainly for use in
-    // the demo and "Getting Started" page, where users can play around with
-    // customizing the chat widget to suit their needs)
-    if (shouldUpdate) {
-      this.handleConfigUpdated({
-        accountId,
-        title,
-        subtitle,
-        primaryColor,
-        baseUrl,
-        greeting,
-        newMessagePlaceholder,
-        emailInputPlaceholder,
-        newMessagesNotificationText,
-      });
-    }
   }
 
   getDefaultTitle = async (settings: WidgetSettings) => {
@@ -324,27 +233,6 @@ class ChatWidgetContainer extends React.Component<Props, State> {
     });
 
     this.logger.debug('Updated customer ID:', customerId);
-  };
-
-  fetchWidgetSettings = async (): Promise<WidgetSettings> => {
-    const {accountId, baseUrl} = this.props;
-    const empty = {} as WidgetSettings;
-
-    return fetchWidgetSettings(accountId, baseUrl)
-      .then((settings) => settings || empty)
-      .catch(() => empty);
-  };
-
-  updateWidgetSettingsMetadata = () => {
-    const {accountId, baseUrl} = this.props;
-    const metadata = getUserInfo(window);
-
-    return updateWidgetSettingsMetadata(accountId, metadata, baseUrl).catch(
-      (err) => {
-        // No need to block on this
-        this.logger.error('Failed to update widget metadata:', err);
-      }
-    );
   };
 
   customEventHandlers = (event: any) => {

@@ -3,7 +3,7 @@ import React from 'react';
 import ChatWidget, {ChatWindow, Papercups} from '@papercups-io/chat-widget';
 
 // NB: during development, replace this with a valid account ID from your dev db
-const TEST_ACCOUNT_ID = '2EBBAD4C-B162-4ED2-AFF5-EAF9EBF469A5';
+const TEST_VERSION_ID = '600b4babe3d4190007147a51';
 
 type Props = {disco?: boolean; displayChatWindow?: boolean};
 
@@ -51,11 +51,10 @@ const App = ({disco, displayChatWindow}: Props) => {
             title='Welcome to Papercups!'
             subtitle='Ask us anything in the chat window 😊'
             primaryColor={primaryColor}
-            accountId={TEST_ACCOUNT_ID}
+            avatar='https://styles.redditmedia.com/t5_2th52/styles/communityIcon_b37n2zfs8k861.png'
+            versionID={TEST_VERSION_ID}
             greeting='Hi there! How can I help you?'
             newMessagePlaceholder='Start typing...'
-            agentAvailableText='Agents are online!'
-            agentUnavailableText='Agents are not available at the moment.'
             customer={{
               name: 'Test User',
               email: 'test@test.com',
@@ -70,10 +69,7 @@ const App = ({disco, displayChatWindow}: Props) => {
             }}
             // NB: we override these values during development -- note that the
             // API runs on port 4000 by default, and the iframe on 8080
-            baseUrl='http://localhost:4000'
             iframeUrlOverride='http://localhost:8080'
-            requireEmailUpfront
-            showAgentAvailability
             onChatLoaded={() => console.log('Chat loaded!')}
             onChatClosed={() => console.log('Chat closed!')}
             onChatOpened={() => console.log('Chat opened!')}
@@ -91,13 +87,11 @@ const App = ({disco, displayChatWindow}: Props) => {
           title='Welcome to Papercups!'
           subtitle='Ask us anything in the chat window 😊'
           primaryColor={primaryColor}
-          accountId={TEST_ACCOUNT_ID}
+          versionID={TEST_VERSION_ID}
+          avatar='https://styles.redditmedia.com/t5_2th52/styles/communityIcon_b37n2zfs8k861.png'
+          companyName="WSB"
           greeting='Hi there! How can I help you?'
           newMessagePlaceholder='Start typing...'
-          emailInputPlaceholder='What is your email address?'
-          newMessagesNotificationText='View new messages'
-          agentAvailableText='Agents are online!'
-          agentUnavailableText='Agents are not available at the moment.'
           customer={{
             name: 'Test User',
             email: 'test@test.com',
@@ -112,10 +106,7 @@ const App = ({disco, displayChatWindow}: Props) => {
           }}
           // NB: we override these values during development -- note that the
           // API runs on port 4000 by default, and the iframe on 8080
-          baseUrl='http://localhost:4000'
           iframeUrlOverride='http://localhost:8080'
-          requireEmailUpfront
-          showAgentAvailability
           hideToggleButton={false}
           defaultIsOpen={false}
           iconVariant='filled'

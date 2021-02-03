@@ -1,18 +1,12 @@
 export type WidgetConfig = {
-  accountId?: string;
-  baseUrl?: string;
+  versionID?: string;
+  runtimeEndpoint?: string;
   title?: string;
   subtitle?: string;
   primaryColor?: string;
-  greeting?: string;
   newMessagePlaceholder?: string;
-  emailInputPlaceholder?: string;
-  newMessagesNotificationText?: string;
   companyName?: string;
-  agentAvailableText?: string;
-  agentUnavailableText?: string;
-  showAgentAvailability?: 1 | 0;
-  requireEmailUpfront?: 1 | 0;
+  avatar?: string;
   closeable?: 1 | 0;
   customerId?: string;
   subscriptionPlan?: string;
