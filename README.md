@@ -41,7 +41,7 @@ Paste the code below between your `<head>` and `</head>` tags:
   type="text/javascript"
   async
   defer
-  src="https://app.papercups.io/widget.js"
+  src="https://s3.amazonaws.com/com.voiceflow.chat-window/widget.js"
 ></script>
 ```
 
