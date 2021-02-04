@@ -34,6 +34,11 @@ Paste the code below between your `<head>` and `</head>` tags:
       subtitle: 'Ask us anything in the chat window below 😊',
       newMessagePlaceholder: 'Start typing...',
       primaryColor: '#13c2c2',
+      iframeUrlOverride: 'https://chat-window.onrender.com',
+      // avatar image URL
+      avatar: '',
+      // bot name
+      companyName: '',
     },
   };
 </script>

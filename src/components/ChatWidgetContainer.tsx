@@ -11,8 +11,7 @@ import {isDev} from '../config';
 import Logger from '../logger';
 import {getUserInfo} from '../track/info';
 
-const DEFAULT_IFRAME_URL =
-  'http://com.voiceflow.chat-window.s3-website-us-east-1.amazonaws.com';
+const DEFAULT_IFRAME_URL = 'https://chat-window.onrender.com';
 
 // TODO: set this up somewhere else
 const setupPostMessageHandlers = (w: any, handlers: (msg?: any) => void) => {
